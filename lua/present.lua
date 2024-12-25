@@ -148,9 +148,9 @@ local parse_slides = function(lines)
   return slides
 end
 
-local create_window_configurations = function()
-  local width = vim.o.columns
-  local height = vim.o.lines
+local create_window_configurations = function(opts)
+  local width = opts.width or vim.o.columns
+  local height = opts.height or vim.o.lines
 
   local header_height = 1 + 2                                        -- 1 + border
   local footer_height = 1                                            -- 1, no border
@@ -223,10 +223,10 @@ M.start_presentation = function(opts)
 
   local lines = vim.api.nvim_buf_get_lines(opts.bufnr, 0, -1, false)
   state.parsed = parse_slides(lines)
-  state.current_slide = 1
+  -- state.current_slide = 1
   state.title = vim.fn.fnamemodify(vim.api.nvim_buf_get_name(opts.bufnr), ":t")
 
-  local windows = create_window_configurations()
+  local windows = create_window_configurations(opts)
   state.floats.background = create_floating_window(windows.background)
   state.floats.header = create_floating_window(windows.header)
   state.floats.footer = create_floating_window(windows.footer)
@@ -237,7 +237,7 @@ M.start_presentation = function(opts)
   end)
 
   local set_slide_content = function(idx)
-    local width = vim.o.columns
+    local width = opts.width or vim.o.columns
 
     local slide = state.parsed.slides[idx]
 
@@ -306,16 +306,16 @@ M.start_presentation = function(opts)
     table.insert(output, "```")
 
     local buf = vim.api.nvim_create_buf(false, true) -- No file, scratch buffer
-    local temp_width = math.floor(vim.o.columns * 0.8)
-    local temp_height = math.floor(vim.o.lines * 0.8)
+    local temp_width = math.floor(opts.width or vim.o.columns * 0.8)
+    local temp_height = math.floor(opts.height or vim.o.lines * 0.8)
     vim.api.nvim_open_win(buf, true, {
       relative = "editor",
       style = "minimal",
       noautocmd = true,
       width = temp_width,
       height = temp_height,
-      row = math.floor((vim.o.lines - temp_height) / 2),
-      col = math.floor((vim.o.columns - temp_width) / 2),
+      row = math.floor((opts.height or vim.o.lines - temp_height) / 2),
+      col = math.floor((opts.width or vim.o.columns - temp_width) / 2),
       border = "rounded"
     })
 
@@ -381,3 +381,4 @@ end
 M._parse_slides = parse_slides
 
 return M
+
